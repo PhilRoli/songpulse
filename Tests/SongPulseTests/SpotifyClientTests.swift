@@ -57,6 +57,10 @@ final class SpotifyClientTests: XCTestCase {
         XCTAssertTrue(SpotifyScripts.state.contains("ASCII character 31"))
     }
 
+    func testStateScriptConvertsMissingValueToEmptyText() {
+        XCTAssertTrue(SpotifyScripts.state.contains("is missing value"))
+    }
+
     func testCommandErrorsAreSwallowed() async {
         let runner = FakeRunner()
         runner.result = .failure(ScriptError(code: -1743))

@@ -21,6 +21,8 @@ xattr -dr com.apple.quarantine /Applications/SongPulse.app
 
 SongPulse controls the Spotify desktop app through AppleScript, so it needs no login or API keys. macOS asks once whether SongPulse may control Spotify; if you declined, re-enable it under System Settings › Privacy & Security › Automation. Spotify must be installed and running.
 
+Because the app is ad-hoc signed, macOS may forget the permission after an upgrade. If the popover asks for permission although SongPulse is already enabled, run `tccutil reset AppleEvents com.philipp.SongPulse` and relaunch.
+
 ## How it works
 
 - Updates instantly from Spotify's own playback notifications; no polling while idle.
