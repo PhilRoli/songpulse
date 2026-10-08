@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         self.model = model
 
         popover.behavior = .transient
+        popover.contentSize = PopoverView.size
         popover.delegate = self
         popover.contentViewController = NSHostingController(rootView: PopoverView(model: model))
 
