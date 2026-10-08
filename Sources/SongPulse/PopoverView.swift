@@ -1,15 +1,21 @@
 import SwiftUI
 
 struct PopoverView: View {
+    /// Fixed so the popover never resizes after it is shown: NSPopover keeps its bottom edge when content grows,
+    /// which pushes it over the menu bar.
+    static let size = NSSize(width: 260, height: 372)
+
     @ObservedObject var model: PlayerViewModel
 
     var body: some View {
         VStack(spacing: 14) {
+            Spacer(minLength: 0)
             content
+            Spacer(minLength: 0)
             footer
         }
         .padding(16)
-        .frame(width: 260)
+        .frame(width: Self.size.width, height: Self.size.height)
     }
 
     @ViewBuilder private var content: some View {
