@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         monitor.onChange = { state in model.apply(state) }
         // Artwork loads asynchronously after apply(), so redraw the status item whenever either changes.
         Publishers.CombineLatest(model.$state, model.$artwork)
+            .removeDuplicates { StatusDisplay.from($0.0) == StatusDisplay.from($1.0) && $0.1 === $1.1 }
             .receive(on: RunLoop.main)
             .sink { [unowned self] state, artwork in self.statusBar.update(state, artwork: artwork) }
             .store(in: &cancellables)

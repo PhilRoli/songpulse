@@ -33,6 +33,14 @@ final class PlaybackMonitor {
         onChange?(fresh)
     }
 
+    /// Refreshes once after each delay in turn (used while Spotify is still starting up).
+    func refresh(afterDelays delays: [TimeInterval]) async {
+        for delay in delays {
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            await refresh()
+        }
+    }
+
     func setPopoverOpen(_ open: Bool) {
         timer?.invalidate()
         timer = nil
@@ -48,7 +56,11 @@ final class PlaybackMonitor {
             if name != Self.notificationName,
                let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                app.bundleIdentifier != Self.spotifyBundleID { return }
-            Task { @MainActor in await self?.refresh() }
+            let launched = name == NSWorkspace.didLaunchApplicationNotification
+            Task { @MainActor in
+                await self?.refresh()
+                if launched { await self?.refresh(afterDelays: [1, 2, 5]) }
+            }
         }
         observers.append((center, token))
     }

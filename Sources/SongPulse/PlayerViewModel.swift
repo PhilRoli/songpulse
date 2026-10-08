@@ -10,6 +10,7 @@ final class PlayerViewModel: ObservableObject {
     private let monitor: PlaybackMonitor
     private let artworkLoader: ArtworkLoader
     private let loginItem: LoginItemController
+    private var loadingURL: URL?
 
     init(client: SpotifyControlling, monitor: PlaybackMonitor,
          artworkLoader: ArtworkLoader, loginItem: LoginItemController) {
@@ -21,14 +22,19 @@ final class PlayerViewModel: ObservableObject {
     }
 
     func apply(_ newState: PlaybackState) {
+        let previousURL = state.artworkURL
         state = newState
         guard let url = newState.artworkURL, newState.isRunning else {
             artwork = nil
+            loadingURL = nil
             return
         }
+        if url == previousURL, artwork != nil || loadingURL == url { return }
+        loadingURL = url
         Task {
             let image = await artworkLoader.image(for: url)
             if state.artworkURL == url { artwork = image }
+            if loadingURL == url { loadingURL = nil }
         }
     }
 
