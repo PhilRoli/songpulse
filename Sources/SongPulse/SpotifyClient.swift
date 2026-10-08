@@ -30,13 +30,18 @@ final class NSAppleScriptRunner: ScriptRunning {
 
 enum SpotifyScripts {
     static let state = """
+    on txt(v)
+        if v is missing value then return ""
+        return v as string
+    end txt
+
     if application "Spotify" is running then
         tell application "Spotify"
             set sep to (ASCII character 31)
             set ps to (player state as string)
             try
                 set t to current track
-                set info to (name of t) & sep & (artist of t) & sep & (artwork url of t)
+                set info to my txt(name of t) & sep & my txt(artist of t) & sep & my txt(artwork url of t)
             on error
                 set info to sep & sep
             end try
