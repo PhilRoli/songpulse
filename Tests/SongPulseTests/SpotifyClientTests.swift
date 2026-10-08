@@ -61,6 +61,22 @@ final class SpotifyClientTests: XCTestCase {
         XCTAssertTrue(SpotifyScripts.state.contains("is missing value"))
     }
 
+    func testScriptsUseATimeout() {
+        XCTAssertTrue(SpotifyScripts.state.contains("with timeout of 5 seconds"))
+        XCTAssertTrue(SpotifyScripts.playPause.contains("with timeout of 5 seconds"))
+    }
+
+    func testTimeoutKeepsLastKnownState() async {
+        let runner = FakeRunner()
+        runner.result = .success(["playing", "T", "A", "", "false", "false"].joined(separator: "\u{1F}"))
+        let client = SpotifyClient(runner: runner)
+        let before = await client.fetchState()
+        runner.result = .failure(ScriptError(code: -1712))
+        let after = await client.fetchState()
+        XCTAssertEqual(before, after)
+        XCTAssertTrue(after.isRunning)
+    }
+
     func testCommandErrorsAreSwallowed() async {
         let runner = FakeRunner()
         runner.result = .failure(ScriptError(code: -1743))

@@ -19,6 +19,21 @@ final class PlayerViewModelTests: XCTestCase {
         func data(from url: URL) async throws -> Data { throw URLError(.badURL) }
     }
 
+    final class CountingFetcher: DataFetching {
+        private(set) var calls = 0
+        func data(from url: URL) async throws -> Data {
+            calls += 1
+            try await Task.sleep(nanoseconds: 100_000_000)
+            let image = NSImage(size: NSSize(width: 2, height: 2), flipped: false) { rect in
+                NSColor.blue.setFill()
+                rect.fill()
+                return true
+            }
+            let rep = NSBitmapImageRep(data: image.tiffRepresentation!)!
+            return rep.representation(using: .png, properties: [:])!
+        }
+    }
+
     final class NoopLogin: LoginItemManaging {
         var isEnabled = false
         func register() throws { isEnabled = true }
@@ -70,6 +85,25 @@ final class PlayerViewModelTests: XCTestCase {
         await model.next()
         await model.previous()
         XCTAssertEqual(client.commands, ["next", "previous"])
+    }
+
+    func testRepeatedApplyWithSameArtworkLoadsOnce() async {
+        let client = FakeClient()
+        let fetcher = CountingFetcher()
+        let model = PlayerViewModel(
+            client: client,
+            monitor: PlaybackMonitor(client: client),
+            artworkLoader: ArtworkLoader(fetcher: fetcher),
+            loginItem: LoginItemController(manager: NoopLogin())
+        )
+        let state = PlaybackState(isRunning: true, artworkURL: URL(string: "https://i.scdn.co/image/a"))
+        model.apply(state)
+        model.apply(state)
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        model.apply(state)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertEqual(fetcher.calls, 1)
+        XCTAssertNotNil(model.artwork)
     }
 
     func testApplyClearsArtworkWhenURLIsNil() {

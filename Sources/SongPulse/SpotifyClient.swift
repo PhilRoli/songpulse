@@ -36,17 +36,19 @@ enum SpotifyScripts {
     end txt
 
     if application "Spotify" is running then
-        tell application "Spotify"
-            set sep to (ASCII character 31)
-            set ps to (player state as string)
-            try
-                set t to current track
-                set info to my txt(name of t) & sep & my txt(artist of t) & sep & my txt(artwork url of t)
-            on error
-                set info to sep & sep
-            end try
-            return ps & sep & info & sep & (shuffling as string) & sep & (repeating as string)
-        end tell
+        with timeout of 5 seconds
+            tell application "Spotify"
+                set sep to (ASCII character 31)
+                set ps to (player state as string)
+                try
+                    set t to current track
+                    set info to my txt(name of t) & sep & my txt(artist of t) & sep & my txt(artwork url of t)
+                on error
+                    set info to sep & sep
+                end try
+                return ps & sep & info & sep & (shuffling as string) & sep & (repeating as string)
+            end tell
+        end timeout
     else
         return "NOT_RUNNING"
     end if
@@ -55,7 +57,9 @@ enum SpotifyScripts {
     static func command(_ body: String) -> String {
         """
         if application "Spotify" is running then
-            tell application "Spotify" to \(body)
+            with timeout of 5 seconds
+                tell application "Spotify" to \(body)
+            end timeout
         end if
         """
     }
@@ -78,7 +82,10 @@ protocol SpotifyControlling {
 
 final class SpotifyClient: SpotifyControlling {
     private static let automationDenied = -1743
+    private static let timedOut = -1712
     private let runner: ScriptRunning
+    private let lock = NSLock()
+    private var lastState = PlaybackState.notRunning
 
     init(runner: ScriptRunning = NSAppleScriptRunner()) {
         self.runner = runner
@@ -86,9 +93,14 @@ final class SpotifyClient: SpotifyControlling {
 
     func fetchState() async -> PlaybackState {
         do {
-            return PlaybackState.parse(try await runner.run(SpotifyScripts.state))
+            let state = PlaybackState.parse(try await runner.run(SpotifyScripts.state))
+            remember(state)
+            return state
         } catch let error as ScriptError where error.code == Self.automationDenied {
             return .permissionDenied
+        } catch let error as ScriptError where error.code == Self.timedOut {
+            // A slow Spotify is still running: keep showing the last known state.
+            return recall()
         } catch {
             return .notRunning
         }
@@ -99,6 +111,18 @@ final class SpotifyClient: SpotifyControlling {
     func previous() async { await send(SpotifyScripts.previous) }
     func setShuffling(_ on: Bool) async { await send(SpotifyScripts.setShuffling(on)) }
     func setRepeating(_ on: Bool) async { await send(SpotifyScripts.setRepeating(on)) }
+
+    private func remember(_ state: PlaybackState) {
+        lock.lock()
+        defer { lock.unlock() }
+        lastState = state
+    }
+
+    private func recall() -> PlaybackState {
+        lock.lock()
+        defer { lock.unlock() }
+        return lastState
+    }
 
     private func send(_ source: String) async {
         _ = try? await runner.run(source)

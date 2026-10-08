@@ -52,6 +52,13 @@ final class PlaybackMonitorTests: XCTestCase {
         XCTAssertEqual(count, 2)
     }
 
+    func testRefreshSoonRunsOncePerDelay() async {
+        let client = FakeClient()
+        let monitor = PlaybackMonitor(client: client)
+        await monitor.refresh(afterDelays: [0.01, 0.02, 0.03])
+        XCTAssertEqual(client.fetches, 3)
+    }
+
     func testOpeningPopoverTriggersRefresh() async {
         let client = FakeClient()
         let monitor = PlaybackMonitor(client: client, pollInterval: 3600)
