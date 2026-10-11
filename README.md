@@ -31,10 +31,10 @@ Because the app is ad-hoc signed, macOS may forget the permission after an upgra
 
 ## Development
 
-- Build + install locally: `./rebuild.sh` (installs to /Applications, ad-hoc signed; macOS may re-ask for the Automation permission after each rebuild).
+- Build + install locally: `./rebuild.sh` (installs to /Applications, ad-hoc signed; macOS may re-ask for the Automation permission after each rebuild; needs [menubar-kit](https://github.com/PhilRoli/menubar-kit) cloned next to this repo, or `MENUBAR_KIT` set).
 - Tests: `swift test`. Lint: `swiftlint --strict`.
 - Release: push a tag `vX.Y.Z`. The Release workflow builds a universal app, publishes `SongPulse-X.Y.Z.app.zip` and updates `Casks/songpulse.rb` in `PhilRoli/homebrew-tap` (needs the `HOMEBREW_TAP_TOKEN` repo secret).
-- Regenerate the icon: `scripts/make-icon.sh`.
+- Regenerate the icon: `../menubar-kit/scripts/make-icon.sh 🎵`.
 
 ## License
 
