@@ -1,3 +1,5 @@
+<p align="center"><img src="Packaging/icon.png" width="128" alt="SongPulse icon"></p>
+
 # SongPulse
 
 Menu bar app that shows the album art of your current Spotify song. Click it for a larger cover, title, artist and controls: play/pause, previous, next, shuffle and repeat.
