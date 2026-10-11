@@ -1,3 +1,4 @@
+import MenuBarKit
 import SwiftUI
 
 struct PopoverView: View {
@@ -36,6 +37,9 @@ struct PopoverView: View {
         HStack {
             Spacer()
             Menu {
+                Button(AppVersion.label()) {}
+                    .disabled(true)
+                Divider()
                 Toggle("Launch at Login", isOn: Binding(
                     get: { model.launchAtLogin },
                     set: { _ in model.toggleLaunchAtLogin() }
