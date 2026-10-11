@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import MenuBarKit
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {

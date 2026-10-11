@@ -1,5 +1,6 @@
 import AppKit
 import XCTest
+import MenuBarKit
 @testable import SongPulse
 
 @MainActor
